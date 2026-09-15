@@ -1,0 +1,40 @@
+name: Build Souqna APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Souqna project
+        run: |
+          unzip -q souqna_android_ready.zip -d extracted
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.0'
+          channel: stable
+          cache: true
+
+      - name: Prepare Android project
+        working-directory: extracted/souqna_app
+        run: |
+          flutter create --platforms=android .
+          flutter pub get
+
+      - name: Build APK
+        working-directory: extracted/souqna_app
+        run: |
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: souqna-release-apk
+          path: extracted/souqna_app/build/app/outputs/flutter-apk/app-release.apk
